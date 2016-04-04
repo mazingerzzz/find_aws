@@ -49,9 +49,10 @@ def find_inst_ip(inst_id):
     for res in my_instances:
         for inst in res.instances:
             if inst_id in str(inst):
-                return inst.private_ip_address
-            elif inst in inst_ko:
-                return bcolors.RED + str(inst) + "KO" + bcolors.ENDC
+                if inst_id in str(inst_ko):
+                    return bcolors.RED + str(inst.private_ip_address) + bcolors.ENDC
+                else:
+                    return inst.private_ip_address
 
 
 def find_elb(my_tag):
@@ -68,6 +69,7 @@ def find_elb(my_tag):
                 else:
                     n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
                     inst_ko.append(n.group(0))
+                    result[my_elb].append(n.group(0))
     if result == {} and inst_ko == []:
         print bcolors.RED + "Pas d'ELB correspondant" + bcolors.ENDC
 
