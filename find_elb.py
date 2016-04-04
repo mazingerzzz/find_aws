@@ -9,11 +9,12 @@ import argparse
 aws_profile = ""
 result = {}
 inst_ko = []
+elb_arg = ""
 
 # Args
 parser = argparse.ArgumentParser()
 parser.add_argument("--profile")
-parser.add_argument("search")
+parser.add_argument("search", nargs="?", default="")
 args = parser.parse_args()
 if args.profile:
     aws_profile = str(args.profile)
@@ -54,6 +55,24 @@ def find_inst_ip(inst_id):
 
 
 def find_elb(my_tag):
+    n = ""
+    all_elb = elb.get_all_load_balancers()
+    for my_elb in all_elb:
+        if re.search(my_tag, str(my_elb), re.IGNORECASE):
+            result[my_elb] = []
+            inst_health = my_elb.get_instance_health()
+            for i in inst_health:
+                if re.search("InService", str(i)):
+                    n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
+                    result[my_elb].append(n.group(0))
+                else:
+                    n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
+                    inst_ko.append(n.group(0))
+    if result == {} and inst_ko == []:
+        print bcolors.RED + "Pas d'ELB correspondant" + bcolors.ENDC
+
+
+def find_endpoint(my_tag):
     n = ""
     all_elb = elb.get_all_load_balancers()
     for my_elb in all_elb:
