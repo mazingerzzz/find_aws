@@ -4,7 +4,6 @@ import boto.ec2
 import boto.ec2.elb
 import re
 import argparse
-from pprint import pprint
 
 # Global Vars
 aws_profile = ""
