@@ -4,33 +4,35 @@ import boto.ec2
 import boto.ec2.elb
 import re
 import argparse
+from pprint import pprint
 
 # Global Vars
 aws_profile = ""
 result = {}
 inst_ko = []
-elb_arg = ""
+search = ""
+region = "eu-west-1"
 
 # Args
 parser = argparse.ArgumentParser()
-parser.add_argument("--profile")
+parser.add_argument("--profile", "-p", help='Profile name on your .aws/credentials file')
+parser.add_argument("--loadbalancer", "-l", help='String to search for on ELB names')
 parser.add_argument("search", nargs="?", default="")
 args = parser.parse_args()
 if args.profile:
     aws_profile = str(args.profile)
 if args.search:
-    elb_arg = str(args.search)
+    search = str(args.search)
 
 # Connect
 try:
-    conn = boto.ec2.connect_to_region("eu-west-1", profile_name=aws_profile)
-    elb = boto.ec2.elb.connect_to_region("eu-west-1", profile_name=aws_profile)
+    conn = boto.ec2.connect_to_region(region, profile_name=aws_profile)
+    elb = boto.ec2.elb.connect_to_region(region, profile_name=aws_profile)
     my_instances = conn.get_all_instances()
-    # print "--profile " + aws_profile
 except:
     print "Use Default Profile"
-    conn = boto.ec2.connect_to_region("eu-west-1")
-    elb = boto.ec2.elb.connect_to_region("eu-west-1")
+    conn = boto.ec2.connect_to_region(region)
+    elb = boto.ec2.elb.connect_to_region(region)
     my_instances = conn.get_all_instances()
 
 
@@ -83,9 +85,31 @@ def print_result():
         print "\n"
 
 
+def ec2_details(ip_ec2):
+    filters = {"ip_address": ip_ec2}
+    filters_vpc =  {"private_ip_address": ip_ec2}  
+    instance = conn.get_only_instances(filters=filters)
+    if instance == []:
+        instance = conn.get_only_instances(filters=filters_vpc)
+    if instance == []:
+        print bcolors.RED + "Pas d'EC2 correspondant" + bcolors.ENDC
+    else:
+        if "running" in str(instance[0]._state):
+            print bcolors.GREEN + ip_ec2 + ":" + bcolors.ENDC
+        else:
+            print bcolors.RED + ip_ec2 + ":" + bcolors.ENDC
+        print bcolors.BLUE + "Region: " + bcolors.ENDC + str(instance[0]._placement) + bcolors.BLUE + "               State: " + bcolors.ENDC + str(instance[0]._state)
+        print bcolors.BLUE + "Id: " + bcolors.ENDC + str(instance[0].id) + bcolors.BLUE + "                   Image: " + bcolors.ENDC + str(instance[0].image_id)
+        print bcolors.BLUE + "Launch: " + bcolors.ENDC + str(instance[0].launch_time) + bcolors.BLUE + " Type: " + bcolors.ENDC + str(instance[0].instance_type)
+
+
 def main():
-    find_elb(elb_arg)
-    print_result()
+    ipv4 = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+    if ipv4.match(search):
+        ec2_details(search)    
+    else:
+        find_elb(search)
+        print_result()
 
 
 if __name__ == "__main__":
