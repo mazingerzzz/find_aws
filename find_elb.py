@@ -10,16 +10,19 @@ aws_profile = ""
 result = {}
 inst_ko = []
 search = ""
+aws_lb = ""
 region = "eu-west-1"
 
 # Args
 parser = argparse.ArgumentParser()
 parser.add_argument("--profile", "-p", help='Profile name on your .aws/credentials file')
-parser.add_argument("--loadbalancer", "-l", help='String to search for on ELB names')
+parser.add_argument("--loadbalancer", "-l", nargs="?", help='String to search for on ELB names')
 parser.add_argument("search", nargs="?", default="")
 args = parser.parse_args()
 if args.profile:
     aws_profile = str(args.profile)
+if args.loadbalancer:
+    aws_lb = str(args.loadbalancer)
 if args.search:
     search = str(args.search)
 
@@ -73,9 +76,6 @@ def find_elb(my_tag):
                     result[my_elb].append(n.group(0))
     if result == {} and inst_ko == []:
         print bcolors.RED + "Pas d'ELB correspondant" + bcolors.ENDC
-
-
-def print_result():
     i = 0
     for k, v in result.iteritems():
         print bcolors.BLUE + str(k) + bcolors.ENDC
@@ -83,6 +83,17 @@ def print_result():
             print bcolors.GREEN + str(find_inst_ip(i)) + bcolors.ENDC,
         print "\n"
 
+
+def find_ec2(my_tag):
+    for instance in my_instances:
+        if "Name" in instance.instances[0].tags:
+            if my_tag in instance.instances[0].tags['Name']:
+                print bcolors.GREEN + str(instance.instances[0].tags['Name']) + bcolors.ENDC
+                if instance.instances[0].ip_address:
+                    ec2_details(str(instance.instances[0].ip_address))
+                else:
+                    ec2_details(str(instance.instances[0].private_ip_address))
+                print ""
 
 def ec2_details(ip_ec2):
     filters = {"ip_address": ip_ec2}
@@ -104,12 +115,12 @@ def ec2_details(ip_ec2):
 
 def main():
     ipv4 = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-    if ipv4.match(search):
+    if aws_lb != "":
+        find_elb(aws_lb)
+    elif ipv4.match(search):
         ec2_details(search)    
     else:
-        find_elb(search)
-        print_result()
-
+        find_ec2(search)
 
 if __name__ == "__main__":
     main()
