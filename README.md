@@ -1,4 +1,4 @@
-# find_aws_elb
+# find_aws
 Find instances IP and statut from LB or instance name
 
 Usage:
