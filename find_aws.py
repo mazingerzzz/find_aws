@@ -95,9 +95,10 @@ def find_ec2(my_tag):
                     ec2_details(str(instance.instances[0].private_ip_address))
                 print ""
 
+
 def ec2_details(ip_ec2):
     filters = {"ip_address": ip_ec2}
-    filters_vpc =  {"private_ip_address": ip_ec2}  
+    filters_vpc =  {"private_ip_address": ip_ec2}
     instance = conn.get_only_instances(filters=filters)
     if instance == []:
         instance = conn.get_only_instances(filters=filters_vpc)
@@ -121,7 +122,7 @@ def main():
         else:
             find_elb(aws_lb)
     elif ipv4.match(search):
-        ec2_details(search)    
+        ec2_details(search)
     else:
         find_ec2(search)
 
