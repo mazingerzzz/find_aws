@@ -87,7 +87,7 @@ def find_elb(my_tag):
 def find_ec2(my_tag):
     for instance in my_instances:
         if "Name" in instance.instances[0].tags:
-            if my_tag in instance.instances[0].tags['Name']:
+            if my_tag.lower() in instance.instances[0].tags['Name'].lower():
                 print bcolors.GREEN + str(instance.instances[0].tags['Name']) + bcolors.ENDC
                 if instance.instances[0].ip_address:
                     ec2_details(str(instance.instances[0].ip_address))
