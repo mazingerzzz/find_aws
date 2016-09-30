@@ -2,6 +2,8 @@
 
 import boto.ec2
 import boto.ec2.elb
+import boto.utils
+import boto.beanstalk
 import re
 import argparse
 
@@ -11,18 +13,22 @@ result = {}
 inst_ko = []
 search = ""
 aws_lb = ""
+aws_beanstalk = ""
 region = "eu-west-1"
 
 # Args
 parser = argparse.ArgumentParser()
 parser.add_argument("--profile", "-p", help='Profile name on your .aws/credentials file')
-parser.add_argument("--loadbalancer", "-l", help='String to search for on ELB names')
+parser.add_argument("--loadbalancer", "-l", help='String to search for an ELB names')
+parser.add_argument("--beanstalk", "-b", help='String to search on beanstalk')
 parser.add_argument("search", nargs="?", default="")
 args = parser.parse_args()
 if args.profile:
     aws_profile = str(args.profile)
 if args.loadbalancer:
     aws_lb = str(args.loadbalancer)
+if args.beanstalk:
+    aws_beanstalk = str(args.beanstalk)
 if args.search:
     search = str(args.search)
 
@@ -30,12 +36,13 @@ if args.search:
 try:
     conn = boto.ec2.connect_to_region(region, profile_name=aws_profile)
     elb = boto.ec2.elb.connect_to_region(region, profile_name=aws_profile)
+    connection = boto.beanstalk.connect_to_region(region)
     my_instances = conn.get_all_instances()
 except:
-    print "Use Default Profile"
     conn = boto.ec2.connect_to_region(region)
     elb = boto.ec2.elb.connect_to_region(region)
     my_instances = conn.get_all_instances()
+    connection = boto.beanstalk.connect_to_region(region)
 
 
 class bcolors:
@@ -113,6 +120,35 @@ def ec2_details(ip_ec2):
         print bcolors.BLUE + "Id: " + bcolors.ENDC + str(instance[0].id) + bcolors.BLUE + "                   Image: " + bcolors.ENDC + str(instance[0].image_id)
         print bcolors.BLUE + "Launch: " + bcolors.ENDC + str(instance[0].launch_time) + bcolors.BLUE + " Type: " + bcolors.ENDC + str(instance[0].instance_type)
 
+def find_bs(name_bs):
+    envs = (e for e in
+            connection.describe_environments()
+            ['DescribeEnvironmentsResponse']
+            ['DescribeEnvironmentsResult']
+            ['Environments']
+            )
+    for env in envs:
+        resources = (
+            connection.describe_environment_resources(
+                environment_name=env['EnvironmentName']
+            )
+            ['DescribeEnvironmentResourcesResponse']
+            ['DescribeEnvironmentResourcesResult']
+            ['EnvironmentResources']
+        )
+        if re.search(name_bs, str(env), re.IGNORECASE):
+            if env['Status'] == 'Ready' and  env['Health'] == 'Green':
+                print bcolors.GREEN + str(env['EnvironmentName']) + ":" + bcolors.ENDC
+            else:
+                print bcolors.YELLOW + str(env['EnvironmentName']) + ":" + bcolors.ENDC
+            if resources['LoadBalancers'] != []:
+                print bcolors.BLUE + "ELB: " + bcolors.ENDC + str(resources['LoadBalancers'][0]['Name'])
+            
+            liste_inst = ""
+            for id in resources['Instances']:
+                liste_inst += str(id['Id'])
+                liste_inst += "  "
+            print bcolors.BLUE + "ec2: " + bcolors.ENDC + str(liste_inst)
 
 def main():
     ipv4 = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
@@ -121,8 +157,16 @@ def main():
             find_elb("")
         else:
             find_elb(aws_lb)
+
+    if aws_beanstalk != "":
+        if aws_beanstalk == "@":
+            find_bs("")
+        else:
+            find_bs(aws_beanstalk)
+
     elif ipv4.match(search):
         ec2_details(search)
+
     else:
         find_ec2(search)
 

@@ -1,5 +1,5 @@
 # find_aws
-Find instances IP and statut from LB or instance name
+Find instances IP and statut from LB, beanstalk or instance name
 
 Usage:
 
@@ -7,6 +7,7 @@ Usage:
 
 -l --loadbalancer : Specify ELB name (full or partial, @ for all)
 
+-b --beanstalk : Specify environment name (full or partial, @ for all)
 "ip" : Get instance details
 
 nothing: List all instances
