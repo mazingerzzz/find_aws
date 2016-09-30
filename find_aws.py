@@ -19,7 +19,7 @@ aws_profile = ""
 # Args
 parser = argparse.ArgumentParser()
 parser.add_argument("--profile", "-p", help='Profile name on your .aws/credentials file')
-parser.add_argument("--loadbalancer", "-l", help='String to search for an connection_elb names')
+parser.add_argument("--loadbalancer", "-l", help='String to search for an elb names')
 parser.add_argument("--beanstalk", "-b", help='String to search on beanstalk')
 parser.add_argument("search", nargs="?", default="")
 args = parser.parse_args()
@@ -143,7 +143,7 @@ def find_bs(name_bs):
             else:
                 print bcolors.YELLOW + str(env['EnvironmentName']) + ":" + bcolors.ENDC
             if resources['LoadBalancers'] != []:
-                print bcolors.BLUE + "connection_elb: " + bcolors.ENDC + str(resources['LoadBalancers'][0]['Name'])
+                print bcolors.BLUE + "ELB " + bcolors.ENDC + str(resources['LoadBalancers'][0]['Name'])
             
             liste_inst = ""
             for id in resources['Instances']:
