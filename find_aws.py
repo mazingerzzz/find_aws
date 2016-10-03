@@ -107,22 +107,6 @@ def find_ec2(my_tag):
             else:
                 pass
 
-#def ec2_details(ip_ec2):
-#    filters = {"ip_address": ip_ec2}
-#    filters_vpc =  {"private_ip_address": ip_ec2}
-#    instance = conn.get_only_instances(filters=filters)
-#    if instance == []:
-#        instance = conn.get_only_instances(filters=filters_vpc)
-#    if instance == []:
-#        print bcolors.RED + "Pas d'EC2 correspondant" + bcolors.ENDC
-#    else:
-#        if "running" in str(instance[0]._state):
-#            print bcolors.GREEN + ip_ec2 + ":" + bcolors.ENDC
-#        else:
-#            print bcolors.RED + ip_ec2 + ":" + bcolors.ENDC
-#        print bcolors.BLUE + "Region: " + bcolors.ENDC + str(instance[0]._placement) + bcolors.BLUE + "               State: " + bcolors.ENDC + str(instance[0]._state)
-#        print bcolors.BLUE + "Id: " + bcolors.ENDC + str(instance[0].id) + bcolors.BLUE + "                   Image: " + bcolors.ENDC + str(instance[0].image_id)
-#        print bcolors.BLUE + "Launch: " + bcolors.ENDC + str(instance[0].launch_time) + bcolors.BLUE + " Type: " + bcolors.ENDC + str(instance[0].instance_type)
 
 def find_bs(name_bs):
     envs = (e for e in
@@ -153,6 +137,7 @@ def find_bs(name_bs):
                 liste_inst += str(id['Id'])
                 liste_inst += "  "
             print bcolors.BLUE + "ec2: " + bcolors.ENDC + str(liste_inst)
+
 
 def main():
     ipv4 = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
