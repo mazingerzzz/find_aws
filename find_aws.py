@@ -2,7 +2,6 @@
 
 import boto.ec2
 import boto.ec2.elb
-import boto.utils
 import boto.beanstalk
 import re
 import argparse
@@ -18,7 +17,8 @@ region = "eu-west-1"
 
 # Args
 parser = argparse.ArgumentParser()
-parser.add_argument("--profile", "-p", help='Profile name on your .aws/credentials file')
+parser.add_argument("--profile", "-p", help='Profile name on your .aws/credentials file *optional*')
+parser.add_argument("--region", "-r", help='Specify the region (default eu-west-1) *optional*')
 parser.add_argument("--loadbalancer", "-l", help='String to search for an ELB names')
 parser.add_argument("--beanstalk", "-b", help='String to search on beanstalk')
 parser.add_argument("search", nargs="?", default="")
@@ -31,20 +31,22 @@ if args.beanstalk:
     aws_beanstalk = str(args.beanstalk)
 if args.search:
     search = str(args.search)
+if args.region:
+    region = str(args.region)
 
 # Connect
 try:
-    conn = boto.ec2.connect_to_region(region, profile_name=aws_profile)
-    elb = boto.ec2.elb.connect_to_region(region, profile_name=aws_profile)
-    connection = boto.beanstalk.connect_to_region(region)
-    my_instances = conn.get_all_instances()
+    connection_ec2 = boto.ec2.connect_to_region(region, profile_name=aws_profile)
+    connection_elb = boto.ec2.elb.connect_to_region(region, profile_name=aws_profile)
+    connection_bst = boto.beanstalk.connect_to_region(region, profile_name=aws_profile)
+    my_instances = connection_ec2.get_all_instances()
 except:
-    conn = boto.ec2.connect_to_region(region)
-    elb = boto.ec2.elb.connect_to_region(region)
-    my_instances = conn.get_all_instances()
-    connection = boto.beanstalk.connect_to_region(region)
+    connection_ec2 = boto.ec2.connect_to_region(region)
+    connection_elb = boto.ec2.elb.connect_to_region(region)
+    connection_bst = boto.beanstalk.connect_to_region(region)
+    my_instances = connection_ec2.get_all_instances()
 
-
+#Color
 class bcolors:
     HEADER = '\033[95m'
     BLUE = '\033[94m'
@@ -55,7 +57,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
+#Give ID return IP
 def find_inst_ip(inst_id):
     for res in my_instances:
         for inst in res.instances:
@@ -68,7 +70,7 @@ def find_inst_ip(inst_id):
 
 def find_elb(my_tag):
     n = ""
-    all_elb = elb.get_all_load_balancers()
+    all_elb = connection_elb.get_all_load_balancers()
     for my_elb in all_elb:
         if re.search(my_tag, str(my_elb), re.IGNORECASE):
             result[my_elb] = []
@@ -110,14 +112,14 @@ def find_ec2(my_tag):
 
 def find_bs(name_bs):
     envs = (e for e in
-            connection.describe_environments()
+            connection_bst.describe_environments()
             ['DescribeEnvironmentsResponse']
             ['DescribeEnvironmentsResult']
             ['Environments']
             )
     for env in envs:
         resources = (
-            connection.describe_environment_resources(
+            connection_bst.describe_environment_resources(
                 environment_name=env['EnvironmentName']
             )
             ['DescribeEnvironmentResourcesResponse']
