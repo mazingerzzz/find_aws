@@ -162,7 +162,7 @@ def main():
         else:
             find_elb(aws_lb)
 
-    if aws_beanstalk:
+    elif aws_beanstalk:
         if aws_beanstalk == "@":
             find_bs("")
         else:
