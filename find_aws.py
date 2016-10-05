@@ -48,14 +48,11 @@ except:
 
 #Color
 class bcolors:
-    HEADER = '\033[95m'
     BLUE = '\033[94m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     RED = '\033[91m'
     ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 #Give ID return IP
 def find_inst_ip(inst_id):
@@ -94,21 +91,19 @@ def find_elb(my_tag):
 
 
 def find_ec2(my_tag):
-    for instance in my_instances:
-        if "Name" in instance.instances[0].tags:
-            if my_tag.lower() in instance.instances[0].tags['Name'].lower():
-                print bcolors.GREEN + str(instance.instances[0].tags['Name']) + bcolors.ENDC
-                if "running" in str(instance.instances[0]._state):
-                    print bcolors.GREEN + str(instance.instances[0].private_ip_address) + ":" + bcolors.ENDC
-                else:
-                    print bcolors.RED + str(instance.instances[0].private_ip_address) + ":" + bcolors.ENDC
-                print bcolors.BLUE + "Region: " + bcolors.ENDC + str(instance.instances[0]._placement) + bcolors.BLUE + "               State: " + bcolors.ENDC + str(instance.instances[0]._state)
-                print bcolors.BLUE + "Id: " + bcolors.ENDC + str(instance.instances[0].id) + bcolors.BLUE + "                   Image: " + bcolors.ENDC + str(instance.instances[0].image_id)
-                print bcolors.BLUE + "Launch: " + bcolors.ENDC + (instance.instances[0].launch_time) + bcolors.BLUE + " Type: " + bcolors.ENDC + str(instance.instances[0].instance_type)
-                print ""
+    for instance in my_instances:        
+        if (my_tag in instance.instances[0].private_ip_address or my_tag.lower() in instance.instances[0].tags['Name'].lower()) and "Name" in instance.instances[0].tags:
+            print bcolors.GREEN + str(instance.instances[0].tags['Name']) + bcolors.ENDC
+            if "running" in str(instance.instances[0]._state):
+                print bcolors.GREEN + str(instance.instances[0].private_ip_address) + ":" + bcolors.ENDC
             else:
-                pass
-
+                print bcolors.RED + str(instance.instances[0].private_ip_address) + ":" + bcolors.ENDC
+            print bcolors.BLUE + "Region: " + bcolors.ENDC + str(instance.instances[0]._placement) + bcolors.BLUE + "               State: " + bcolors.ENDC + str(instance.instances[0]._state)
+            print bcolors.BLUE + "Id: " + bcolors.ENDC + str(instance.instances[0].id) + bcolors.BLUE + "                   Image: " + bcolors.ENDC + str(instance.instances[0].image_id)
+            print bcolors.BLUE + "Launch: " + bcolors.ENDC + (instance.instances[0].launch_time) + bcolors.BLUE + " Type: " + bcolors.ENDC + str(instance.instances[0].instance_type)
+            print ""
+        else:
+            pass
 
 def find_bs(name_bs):
     envs = (e for e in
@@ -154,8 +149,6 @@ def main():
             find_bs("")
         else:
             find_bs(aws_beanstalk)
-    #elif ipv4.match(search):
-    #    ec2_details(search)
     if aws_lb == "" and aws_beanstalk =="":
         find_ec2(search)
 
