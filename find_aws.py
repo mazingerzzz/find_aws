@@ -9,11 +9,13 @@ import argparse
 # Global Vars
 aws_profile = ""
 result = {}
+inst_ip = {}
 inst_ko = []
 search = ""
 aws_lb = ""
 aws_beanstalk = ""
 region = "eu-west-1"
+find = 0
 
 # Args
 parser = argparse.ArgumentParser()
@@ -54,41 +56,24 @@ class bcolors:
     RED = '\033[91m'
     ENDC = '\033[0m'
 
-#Give ID return IP
-def find_inst_ip(inst_id):
+def find_elb(my_tag):
     for res in my_instances:
         for inst in res.instances:
-            if inst_id in str(inst):
-                if inst_id in str(inst_ko):
-                    return bcolors.RED + str(inst.private_ip_address) + bcolors.ENDC
-                else:
-                    return inst.private_ip_address
-
-
-def find_elb(my_tag):
-    n = ""
+            inst_ip[inst.id] = str(inst.private_ip_address)
     all_elb = connection_elb.get_all_load_balancers()
     for my_elb in all_elb:
         if re.search(my_tag, str(my_elb), re.IGNORECASE):
-            result[my_elb] = []
+            find = 1
+            print bcolors.BLUE + str(my_elb.name) + bcolors.ENDC
             inst_health = my_elb.get_instance_health()
             for i in inst_health:
                 if re.search("InService", str(i)):
                     n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
-                    result[my_elb].append(n.group(0))
+                    print bcolors.GREEN + str(inst_ip[n.group(0)]) + bcolors.ENDC,
                 else:
                     n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
-                    inst_ko.append(n.group(0))
-                    result[my_elb].append(n.group(0))
-    if result == {} and inst_ko == []:
-        print bcolors.RED + "Pas d'ELB correspondant" + bcolors.ENDC
-    i = 0
-    for k, v in result.iteritems():
-        print bcolors.BLUE + str(k) + bcolors.ENDC
-        for i in v:
-            print bcolors.GREEN + str(find_inst_ip(i)) + bcolors.ENDC,
+                    print bcolors.RED + str(inst_ip[n.group(0)]) + bcolors.ENDC,
         print "\n"
-
 
 def find_ec2(my_tag):
     for instance in my_instances:        
