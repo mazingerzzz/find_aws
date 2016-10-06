@@ -15,7 +15,6 @@ search = ""
 aws_lb = ""
 aws_beanstalk = ""
 region = "eu-west-1"
-find = 0
 
 # Args
 parser = argparse.ArgumentParser()
@@ -57,6 +56,7 @@ class bcolors:
     ENDC = '\033[0m'
 
 def find_elb(my_tag):
+    find = 0
     for res in my_instances:
         for inst in res.instances:
             inst_ip[inst.id] = str(inst.private_ip_address)
@@ -73,8 +73,9 @@ def find_elb(my_tag):
                 else:
                     n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
                     print bcolors.RED + str(inst_ip[n.group(0)]) + bcolors.ENDC,
-        print "\n"
-
+            print "\n"
+    if find == 0:
+        print bcolors.RED + "Aucun ELB trouve" + bcolors.ENDC
 def find_ec2(my_tag):
     for instance in my_instances:        
         if (my_tag in instance.instances[0].private_ip_address or my_tag.lower() in instance.instances[0].tags['Name'].lower()) and "Name" in instance.instances[0].tags:
