@@ -11,6 +11,8 @@ Usage:
 
 -b --beanstalk : Specify environment name (full or partial, @ for all)
 
+-e --export : Path to ansible hosts file to export results when using -l or -b (it overwrite the file)
+
 -r --region : Specify your aws region (default eu-west-1)
 
 "ip" : Get instance details
