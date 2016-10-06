@@ -5,6 +5,7 @@ import boto.ec2.elb
 import boto.beanstalk
 import re
 import argparse
+import sys
 
 # Global Vars
 aws_profile = ""
@@ -13,6 +14,7 @@ inst_ip = {}
 inst_ko = []
 search = ""
 aws_lb = ""
+
 aws_beanstalk = ""
 region = "eu-west-1"
 
@@ -22,6 +24,7 @@ parser.add_argument("--profile", "-p", help='Profile name on your .aws/credentia
 parser.add_argument("--region", "-r", help='Specify the region (default eu-west-1) *optional*')
 parser.add_argument("--loadbalancer", "-l", help='String to search for an ELB names')
 parser.add_argument("--beanstalk", "-b", help='String to search on beanstalk')
+parser.add_argument("--export", "-e", help='path to ansible hosts file to export results when using -l or -b')
 parser.add_argument("search", nargs="?", default="")
 args = parser.parse_args()
 if args.profile:
@@ -34,6 +37,7 @@ if args.search:
     search = str(args.search)
 if args.region:
     region = str(args.region)
+
 
 # Connect
 try:
@@ -56,6 +60,13 @@ class bcolors:
     ENDC = '\033[0m'
 
 def find_elb(my_tag):
+    if args.export:
+        try:
+            fichier = open(str(args.export), "w")
+        except IOError:
+            print "Error while trying to create hosts file"
+            sys.exit()
+
     find = 0
     for res in my_instances:
         for inst in res.instances:
@@ -65,17 +76,25 @@ def find_elb(my_tag):
         if re.search(my_tag, str(my_elb), re.IGNORECASE):
             find = 1
             print bcolors.BLUE + str(my_elb.name) + bcolors.ENDC
+            if args.export:
+                fichier.write("\n[" + str(my_elb.name) + "]")
             inst_health = my_elb.get_instance_health()
             for i in inst_health:
                 if re.search("InService", str(i)):
                     n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
                     print bcolors.GREEN + str(inst_ip[n.group(0)]) + bcolors.ENDC,
+                    if args.export:
+                        fichier.write("\n" + str(inst_ip[n.group(0)]))
                 else:
                     n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
                     print bcolors.RED + str(inst_ip[n.group(0)]) + bcolors.ENDC,
-            print "\n"
+                    if args.export:
+                        fichier.write("\n" + str(inst_ip[n.group(0)]))
     if find == 0:
         print bcolors.RED + "Aucun ELB trouve" + bcolors.ENDC
+    if args.export:
+        fichier.write("\n")
+        fichier.close()
 
 def find_ec2(my_tag):
     for instance in my_instances:
@@ -96,6 +115,13 @@ def find_ec2(my_tag):
             pass
 
 def find_bs(name_bs):
+    if args.export:
+        try:
+            fichier = open(str(args.export), "w")
+        except IOError:
+            print "Error while trying to create hosts file"
+            sys.exit()
+
     envs = (e for e in
             connection_bst.describe_environments()
             ['DescribeEnvironmentsResponse']
@@ -114,8 +140,12 @@ def find_bs(name_bs):
         if re.search(name_bs, str(env), re.IGNORECASE):
             if env['Status'] == 'Ready' and  env['Health'] == 'Green':
                 print bcolors.GREEN + str(env['EnvironmentName']) + ":" + bcolors.ENDC
+                if args.export:
+                    fichier.write("\n[" + str(env['EnvironmentName']) + "]")
             else:
                 print bcolors.YELLOW + str(env['EnvironmentName']) + ":" + bcolors.ENDC
+                if args.export:
+                    fichier.write("\n[" + str(env['EnvironmentName']) + "]")
             if resources['LoadBalancers'] != []:
                 print bcolors.BLUE + "ELB: " + bcolors.ENDC + str(resources['LoadBalancers'][0]['Name'])
 
@@ -123,7 +153,15 @@ def find_bs(name_bs):
             for id in resources['Instances']:
                 liste_inst += str(id['Id'])
                 liste_inst += "  "
+                if args.export:
+                    for res in my_instances:
+                        for inst in res.instances:
+                            if str(inst.id) == str(id['Id']):
+                                fichier.write("\n" + str(inst.private_ip_address))
             print bcolors.BLUE + "ec2: " + bcolors.ENDC + str(liste_inst)
+    if args.export:
+        fichier.write("\n")
+        fichier.close()
 
 
 def main():
