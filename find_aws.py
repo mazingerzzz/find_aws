@@ -76,6 +76,7 @@ def find_elb(my_tag):
             print "\n"
     if find == 0:
         print bcolors.RED + "Aucun ELB trouve" + bcolors.ENDC
+    
 def find_ec2(my_tag):
     for instance in my_instances:        
         if (my_tag in instance.instances[0].private_ip_address or my_tag.lower() in instance.instances[0].tags['Name'].lower()) and "Name" in instance.instances[0].tags:
