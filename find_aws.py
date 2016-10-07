@@ -72,10 +72,15 @@ def find_elb(my_tag):
         for inst in res.instances:
             inst_ip[inst.id] = str(inst.private_ip_address)
     all_elb = connection_elb.get_all_load_balancers()
+    elb_count = 0
     for my_elb in all_elb:
         if re.search(my_tag, str(my_elb), re.IGNORECASE):
             find = 1
-            print bcolors.BLUE + str(my_elb.name) + bcolors.ENDC
+            if elb_count == 0:
+                print bcolors.BLUE + str(my_elb.name) + bcolors.ENDC
+            else:
+                print "\n" + bcolors.BLUE + str(my_elb.name) + bcolors.ENDC
+            elb_count += 1
             if args.export:
                 fichier.write("\n[" + str(my_elb.name) + "]")
             inst_health = my_elb.get_instance_health()
