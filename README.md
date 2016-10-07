@@ -1,7 +1,11 @@
 # find_aws
 Find instances IP and statut from LB, beanstalk or instance name
 
+# Install
+git clone https://github.com/mazingerzzz/find_aws
+pip install boto
 
+# Howto
 Usage:
 
 ``` 
