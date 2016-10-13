@@ -27,7 +27,7 @@ parser.add_argument("--region", "-r", help='Specify the region (default eu-west-
 parser.add_argument("--loadbalancer", "-l", help='String to search for an ELB names')
 parser.add_argument("--beanstalk", "-b", help='String to search on beanstalk')
 parser.add_argument("--export", "-e", help='path to ansible hosts file to export results when using -l or -b')
-parser.add_argument("--tmuxinator", "-t", help='generate a tmuxinator yaml config, you need -l option')
+parser.add_argument("--tmuxinator", "-t", help='generate a tmuxinator yaml config, you need -l option',action='store_true')
 parser.add_argument("search", nargs="?", default="")
 args = parser.parse_args()
 if args.profile:
