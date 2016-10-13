@@ -6,6 +6,7 @@ import boto.beanstalk
 import re
 import argparse
 import sys
+import yaml
 
 # Global Vars
 aws_profile = ""
@@ -14,6 +15,7 @@ inst_ip = {}
 inst_ko = []
 search = ""
 aws_lb = ""
+inst_ip_ok = {} # ex : {elb_name:[ip,ip,..]}
 
 aws_beanstalk = ""
 region = "eu-west-1"
@@ -25,6 +27,7 @@ parser.add_argument("--region", "-r", help='Specify the region (default eu-west-
 parser.add_argument("--loadbalancer", "-l", help='String to search for an ELB names')
 parser.add_argument("--beanstalk", "-b", help='String to search on beanstalk')
 parser.add_argument("--export", "-e", help='path to ansible hosts file to export results when using -l or -b')
+parser.add_argument("--tmuxinator", "-t", help='generate a tmuxinator yaml config, you need -l option')
 parser.add_argument("search", nargs="?", default="")
 args = parser.parse_args()
 if args.profile:
@@ -60,6 +63,7 @@ class bcolors:
     ENDC = '\033[0m'
 
 def find_elb(my_tag):
+    ip_ok_list = []
     if args.export:
         try:
             fichier = open(str(args.export), "w")
@@ -88,6 +92,8 @@ def find_elb(my_tag):
                 if re.search("InService", str(i)):
                     n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
                     print bcolors.GREEN + str(inst_ip[n.group(0)]) + bcolors.ENDC,
+                    # add in array for tmuxinator
+                    ip_ok_list.append(str(inst_ip[n.group(0)]))
                     if args.export:
                         fichier.write("\n" + str(inst_ip[n.group(0)]))
                 else:
@@ -95,11 +101,14 @@ def find_elb(my_tag):
                     print bcolors.RED + str(inst_ip[n.group(0)]) + bcolors.ENDC,
                     if args.export:
                         fichier.write("\n" + str(inst_ip[n.group(0)]))
+            inst_ip_ok[my_elb.name] = ip_ok_list
     if find == 0:
         print bcolors.RED + "Aucun ELB trouve" + bcolors.ENDC
     if args.export:
         fichier.write("\n")
         fichier.close()
+    if args.tmuxinator:
+        tmuxinator(inst_ip_ok)
 
 def find_ec2(my_tag):
     for instance in my_instances:
@@ -169,6 +178,41 @@ def find_bs(name_bs):
         fichier.close()
 
 
+def tmuxinator(dict_elb):
+    #my_srv = ['mysql-master-1','mysql-slave-1','mysql-slave-2']
+    list_cmd = []
+    list_pane = []
+    dict_result = {}
+    dict_srv = {}
+    # for each elb
+    for k in dict_elb:
+        for v in dict_elb[k]:
+            list_pane = []
+            list_cmd = ['ssh ' + str(v)]
+            dict_srv[str(v)] = list_cmd
+            list_pane.append(dict_srv)
+    print list_pane
+    #print dict_srv
+    #print list_pane
+    dict_result = {'windows':[{k: {'layout': 'tiled', 'panes':list_pane}}]}
+    #print dict_result
+    noalias_dumper = yaml.dumper.SafeDumper
+    noalias_dumper.ignore_aliases = lambda self, dict_result: True
+    #print yaml.dump(dict_result, default_flow_style=False)
+    print "\n" + yaml.dump(dict_result, default_flow_style=False, Dumper=noalias_dumper)
+    #print list_pane
+
+
+def list_command():
+    # return list with ssh connect and sudo cfg
+    return list_cmd
+
+
+def list_panes():
+    return dict_srv
+
+#print yaml.dump(dict_result, default_flow_style=False)
+#print yaml.dump({'windows':[{'mysql-master-prod': {'layout': 'tiled', 'panes':[{'mysql-master-1':['ssh 127.0.0.1']}, {'mysql-slave-1':['ssh 127.0.0.1', 'sudo su']}]}}]},default_flow_style=False)
 def main():
     ipv4 = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
     if aws_lb:
