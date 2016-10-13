@@ -203,16 +203,6 @@ def tmuxinator(dict_elb):
     #print list_pane
 
 
-def list_command():
-    # return list with ssh connect and sudo cfg
-    return list_cmd
-
-
-def list_panes():
-    return dict_srv
-
-#print yaml.dump(dict_result, default_flow_style=False)
-#print yaml.dump({'windows':[{'mysql-master-prod': {'layout': 'tiled', 'panes':[{'mysql-master-1':['ssh 127.0.0.1']}, {'mysql-slave-1':['ssh 127.0.0.1', 'sudo su']}]}}]},default_flow_style=False)
 def main():
     ipv4 = re.compile("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
     if aws_lb:
