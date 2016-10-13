@@ -191,16 +191,10 @@ def tmuxinator(dict_elb):
             list_cmd = ['ssh ' + str(v)]
             dict_srv[str(v)] = list_cmd
             list_pane.append(dict_srv)
-    print list_pane
-    #print dict_srv
-    #print list_pane
     dict_result = {'windows':[{k: {'layout': 'tiled', 'panes':list_pane}}]}
-    #print dict_result
     noalias_dumper = yaml.dumper.SafeDumper
     noalias_dumper.ignore_aliases = lambda self, dict_result: True
-    #print yaml.dump(dict_result, default_flow_style=False)
     print "\n" + yaml.dump(dict_result, default_flow_style=False, Dumper=noalias_dumper)
-    #print list_pane
 
 
 def main():
