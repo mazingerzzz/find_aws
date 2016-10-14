@@ -183,11 +183,10 @@ def tmuxinator(dict_elb):
     list_cmd = []
     list_pane = []
     dict_result = {}
-    dict_srv = {}
     # for each elb
     for k in dict_elb:
         for v in dict_elb[k]:
-            list_pane = []
+            dict_srv = {}
             list_cmd = ['ssh ' + str(v)]
             dict_srv[str(v)] = list_cmd
             list_pane.append(dict_srv)
