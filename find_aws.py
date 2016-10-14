@@ -21,14 +21,14 @@ aws_beanstalk = ""
 region = "eu-west-1"
 
 # Args
-parser = argparse.ArgumentParser()
-parser.add_argument("--profile", "-p", help='Profile name on your .aws/credentials file *optional*')
-parser.add_argument("--region", "-r", help='Specify the region (default eu-west-1) *optional*')
-parser.add_argument("--loadbalancer", "-l", help='String to search for an ELB names')
-parser.add_argument("--beanstalk", "-b", help='String to search on beanstalk')
-parser.add_argument("--export", "-e", help='path to ansible hosts file to export results when using -l or -b')
-parser.add_argument("--tmuxinator", "-t", help='generate a tmuxinator yaml config, you need -l option',action='store_true')
-parser.add_argument("search", nargs="?", default="")
+parser = argparse.ArgumentParser(prog='find_aws.py',formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=50))
+parser.add_argument("--profile", "-p", help='- Profile name on your .aws/credentials file *optional*',metavar="*profile*")
+parser.add_argument("--region", "-r", help='- Specify the region (default eu-west-1) *optional*',metavar="*region*")
+parser.add_argument("--loadbalancer", "-l", help='- String to search for an ELB names',metavar="*string*")
+parser.add_argument("--beanstalk", "-b", help='- String to search on beanstalk',metavar="*string*")
+parser.add_argument("--ansible", "-a", help='- Path to ansible hosts file to export results when using -l or -b',metavar="*path*")
+parser.add_argument("--tmuxinator", "-t", help='- Generate a tmuxinator yaml config, you need -l option',action='store_true')
+parser.add_argument("search", nargs="?", default="", help='- No args: ID or IP of an ec2 you want to search for')
 args = parser.parse_args()
 if args.profile:
     aws_profile = str(args.profile)
@@ -64,9 +64,9 @@ class bcolors:
 
 def find_elb(my_tag):
     ip_ok_list = []
-    if args.export:
+    if args.ansible:
         try:
-            fichier = open(str(args.export), "w")
+            fichier = open(str(args.ansible), "w")
         except IOError:
             print "Error while trying to create hosts file"
             sys.exit()
@@ -85,7 +85,7 @@ def find_elb(my_tag):
             else:
                 print "\n" + bcolors.BLUE + str(my_elb.name) + bcolors.ENDC
             elb_count += 1
-            if args.export:
+            if args.ansible:
                 fichier.write("\n[" + str(my_elb.name) + "]")
             inst_health = my_elb.get_instance_health()
             for i in inst_health:
@@ -94,17 +94,17 @@ def find_elb(my_tag):
                     print bcolors.GREEN + str(inst_ip[n.group(0)]) + bcolors.ENDC,
                     # add in array for tmuxinator
                     ip_ok_list.append(str(inst_ip[n.group(0)]))
-                    if args.export:
+                    if args.ansible:
                         fichier.write("\n" + str(inst_ip[n.group(0)]))
                 else:
                     n = re.search('[a-z]\-([a-z]|[0-9])*', str(i))
                     print bcolors.RED + str(inst_ip[n.group(0)]) + bcolors.ENDC,
-                    if args.export:
+                    if args.ansible:
                         fichier.write("\n" + str(inst_ip[n.group(0)]))
             inst_ip_ok[my_elb.name] = ip_ok_list
     if find == 0:
         print bcolors.RED + "Aucun ELB trouve" + bcolors.ENDC
-    if args.export:
+    if args.ansible:
         fichier.write("\n")
         fichier.close()
     if args.tmuxinator:
@@ -129,9 +129,9 @@ def find_ec2(my_tag):
             pass
 
 def find_bs(name_bs):
-    if args.export:
+    if args.ansible:
         try:
-            fichier = open(str(args.export), "w")
+            fichier = open(str(args.ansible), "w")
         except IOError:
             print "Error while trying to create hosts file"
             sys.exit()
@@ -154,11 +154,11 @@ def find_bs(name_bs):
         if re.search(name_bs, str(env), re.IGNORECASE):
             if env['Status'] == 'Ready' and  env['Health'] == 'Green':
                 print bcolors.GREEN + str(env['EnvironmentName']) + ":" + bcolors.ENDC
-                if args.export:
+                if args.ansible:
                     fichier.write("\n[" + str(env['EnvironmentName']) + "]")
             else:
                 print bcolors.YELLOW + str(env['EnvironmentName']) + ":" + bcolors.ENDC
-                if args.export:
+                if args.ansible:
                     fichier.write("\n[" + str(env['EnvironmentName']) + "]")
             if resources['LoadBalancers'] != []:
                 print bcolors.BLUE + "ELB: " + bcolors.ENDC + str(resources['LoadBalancers'][0]['Name'])
@@ -167,13 +167,13 @@ def find_bs(name_bs):
             for id in resources['Instances']:
                 liste_inst += str(id['Id'])
                 liste_inst += "  "
-                if args.export:
+                if args.ansible:
                     for res in my_instances:
                         for inst in res.instances:
                             if str(inst.id) == str(id['Id']):
                                 fichier.write("\n" + str(inst.private_ip_address))
             print bcolors.BLUE + "ec2: " + bcolors.ENDC + str(liste_inst)
-    if args.export:
+    if args.ansible:
         fichier.write("\n")
         fichier.close()
 
