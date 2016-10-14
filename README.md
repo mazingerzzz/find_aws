@@ -17,7 +17,9 @@ Usage:
 
 -b --beanstalk : Specify environment name (full or partial, @ for all)
 
--e --export : Path to ansible hosts file to export results when using -l or -b (it overwrite the file)
+-a --ansible : Path to ansible hosts file to export results when using -l or -b (it overwrite the file)
+
+-t --tmuxinator : Generate a tmuxinator yaml config you need -l option
 
 -r --region : Specify your aws region (default eu-west-1)
 
