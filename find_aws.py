@@ -7,6 +7,9 @@ import re
 import argparse
 import sys
 import yaml
+import os.path
+import getpass
+import ast
 
 # Global Vars
 aws_profile = ""
@@ -16,6 +19,7 @@ inst_ko = []
 search = ""
 aws_lb = ""
 inst_ip_ok = {} # ex : {elb_name:[ip,ip,..]}
+tmux_result = ""
 
 aws_beanstalk = ""
 region = "eu-west-1"
@@ -194,6 +198,30 @@ def tmuxinator(dict_elb):
     noalias_dumper = yaml.dumper.SafeDumper
     noalias_dumper.ignore_aliases = lambda self, dict_result: True
     print "\n" + yaml.dump(dict_result, default_flow_style=False, Dumper=noalias_dumper)
+    tmux_result = yaml.dump(dict_result, default_flow_style=False, Dumper=noalias_dumper)
+#    tmux_name =
+
+
+def user_home():
+    for p in pwd.getpwall():
+        if p[0] == getpass.getuser():
+            return p[5]
+
+
+def tmux_file_create(tmux_file_name):
+    home = user_home()
+    tmux_file = home + '/.tmuxinator/' + tmux_file_name
+    if os.path.isfile(tmux_file):
+        print 'File' + tmux_file + 'already exist'
+    else:
+        try:
+            f = open(home + '/.tmuxinator/' + tmux_file_name, 'w+')
+            file.write('name: ' + tmux_file_name)
+            file.write('root: ~/')
+
+        except IOError:
+            print "Oops can't create tmuxinator file"
+            sys.exit()
 
 
 def main():
