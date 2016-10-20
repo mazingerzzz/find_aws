@@ -213,6 +213,7 @@ def tmux_file_create(tmux_file_name):
     tmux_file = home + '/.tmuxinator/' + tmux_file_name
     if os.path.isfile(tmux_file):
         print 'File' + tmux_file + 'already exist'
+        sys.exit()
     else:
         try:
             f = open(home + '/.tmuxinator/' + tmux_file_name, 'w+')
