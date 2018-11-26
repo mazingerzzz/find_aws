@@ -117,7 +117,7 @@ def find_elb(my_tag):
 def find_ec2(my_tag):
     for instance in my_instances:
         try:
-            if (my_tag in instance.instances[0].private_ip_address or my_tag.lower() in instance.instances[0].tags['Name'].lower()) and "Name" in instance.instances[0].tags:
+            if (my_tag in instance.instances[0].private_ip_address or my_tag.lower() in instance.instances[0].tags['Name'].lower()) and instance.instances[0].tags:
                 print bcolors.GREEN + str(instance.instances[0].tags['Name']) + bcolors.ENDC
                 if "running" in str(instance.instances[0]._state):
                     print bcolors.GREEN + str(instance.instances[0].private_ip_address) + ":" + bcolors.ENDC
@@ -130,6 +130,8 @@ def find_ec2(my_tag):
             else:
                 pass
         except TypeError:
+            pass
+        except KeyError:
             pass
 
 def find_bs(name_bs):
