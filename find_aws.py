@@ -126,6 +126,7 @@ def find_ec2(my_tag):
                 print bcolors.BLUE + "Region: " + bcolors.ENDC + str(instance.instances[0]._placement) + bcolors.BLUE + "               State: " + bcolors.ENDC + str(instance.instances[0]._state)
                 print bcolors.BLUE + "Id: " + bcolors.ENDC + str(instance.instances[0].id) + bcolors.BLUE + "                   Image: " + bcolors.ENDC + str(instance.instances[0].image_id)
                 print bcolors.BLUE + "Launch: " + bcolors.ENDC + (instance.instances[0].launch_time) + bcolors.BLUE + " Type: " + bcolors.ENDC + str(instance.instances[0].instance_type)
+                print bcolors.BLUE + "Keyname " + bcolors.ENDC + (instance.instances[0].key_name)
                 print ""
             else:
                 pass
