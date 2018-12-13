@@ -120,9 +120,9 @@ def find_ec2(my_tag):
             if (my_tag in instance.instances[0].private_ip_address or my_tag.lower() in instance.instances[0].tags['Name'].lower()) and instance.instances[0].tags:
                 print bcolors.GREEN + str(instance.instances[0].tags['Name']) + bcolors.ENDC
                 if "running" in str(instance.instances[0]._state):
-                    print bcolors.GREEN + str(instance.instances[0].private_ip_address) + ":" + bcolors.ENDC
+                    print bcolors.GREEN + str(instance.instances[0].private_ip_address)  + bcolors.ENDC
                 else:
-                    print bcolors.RED + str(instance.instances[0].private_ip_address) + ":" + bcolors.ENDC
+                    print bcolors.RED + str(instance.instances[0].private_ip_address) + bcolors.ENDC
                 print bcolors.BLUE + "Region: " + bcolors.ENDC + str(instance.instances[0]._placement) + bcolors.BLUE + "               State: " + bcolors.ENDC + str(instance.instances[0]._state)
                 print bcolors.BLUE + "Id: " + bcolors.ENDC + str(instance.instances[0].id) + bcolors.BLUE + "                   Image: " + bcolors.ENDC + str(instance.instances[0].image_id)
                 print bcolors.BLUE + "Launch: " + bcolors.ENDC + (instance.instances[0].launch_time) + bcolors.BLUE + " Type: " + bcolors.ENDC + str(instance.instances[0].instance_type)
